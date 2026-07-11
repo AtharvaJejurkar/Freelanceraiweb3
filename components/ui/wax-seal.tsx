@@ -81,9 +81,6 @@ export function WaxSealAnimated({ onComplete }: { onComplete?: () => void }) {
           />
         </svg>
       </div>
-      <div className="absolute -bottom-1 -right-1 bg-on-surface text-surface-dim font-mono text-[8px] px-2 py-0.5 rounded-full border border-surface-dim">
-        VERIFIED
-      </div>
     </div>
   );
 }

@@ -1,43 +1,128 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { useWallet } from '@solana/wallet-adapter-react';
+import { WalletName } from '@solana/wallet-adapter-base';
+import { supabase } from '@/lib/supabase/client';
 import { cn } from '@/lib/utils';
 
 type UserRole = 'company' | 'freelancer';
 
-const wallets = [
-  { id: 'phantom', name: 'Phantom', color: '#AB9FF2', icon: 'host' },
-  { id: 'solflare', name: 'Solflare', color: '#F19D1E', icon: 'light_mode' },
-  { id: 'backpack', name: 'Backpack', color: '#E41C2D', icon: 'backpack' },
+// Fallback wallet info for display when extensions aren't detected yet
+const knownWallets = [
+  { name: 'Phantom', color: '#AB9FF2', icon: 'host' },
+  { name: 'Solflare', color: '#F19D1E', icon: 'light_mode' },
 ];
 
 export default function OnboardPage() {
   const router = useRouter();
+  const { select, connect, publicKey, connected, connecting, wallets, wallet, disconnect } = useWallet();
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
-  const [connectingWallet, setConnectingWallet] = useState<string | null>(null);
-  const [connectedWallet, setConnectedWallet] = useState<string | null>(null);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
+
+  // Once connected, authenticate with Supabase
+  useEffect(() => {
+    async function authenticateUser() {
+      if (connected && publicKey && selectedRole && !isAuthenticating) {
+        setIsAuthenticating(true);
+        try {
+          const walletAddress = publicKey.toString();
+          
+          // Check if user exists in Supabase
+          const { data: existingUser, error: fetchError } = await supabase
+            .from('users')
+            .select('*')
+            .eq('wallet_address', walletAddress)
+            .single();
+
+          if (fetchError && fetchError.code !== 'PGRST116') {
+            throw fetchError;
+          }
+
+          if (!existingUser) {
+            // Register new user
+            const { error: insertError } = await supabase
+              .from('users')
+              .insert([
+                { 
+                  wallet_address: walletAddress, 
+                  role: selectedRole,
+                  display_name: `User_${walletAddress.substring(0, 4)}`,
+                  reputation_score: 100
+                }
+              ]);
+            
+            if (insertError) throw insertError;
+          }
+
+          // Redirect to appropriate dashboard
+          const redirectRole = existingUser?.role || selectedRole;
+          if (redirectRole === 'company') {
+            router.push('/dashboard/company');
+          } else {
+            router.push('/dashboard/freelancer');
+          }
+
+        } catch (error: any) {
+          console.error("Authentication Error:", error);
+          setAuthError(error.message || "Failed to authenticate with ledger.");
+          setIsAuthenticating(false);
+        }
+      }
+    }
+
+    authenticateUser();
+  }, [connected, publicKey, selectedRole, router, isAuthenticating]);
 
   const handleRoleSelect = (role: UserRole) => {
     setSelectedRole(role);
   };
 
-  const handleWalletConnect = async (walletId: string) => {
-    setConnectingWallet(walletId);
-    // Simulate wallet connection
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    setConnectingWallet(null);
-    setConnectedWallet(walletId);
+  const handleWalletConnect = useCallback(async (walletName: string) => {
+    setAuthError(null);
+    if (!selectedRole) return;
+    
+    try {
+      // Step 1: Select the wallet
+      select(walletName as WalletName);
+      
+      // Step 2: Small delay to allow the adapter to register the selection,
+      // then explicitly connect to trigger the browser extension popup
+      setTimeout(async () => {
+        try {
+          await connect();
+        } catch (err: any) {
+          // WalletNotReadyError means the extension isn't installed
+          if (err.name === 'WalletNotReadyError') {
+            setAuthError(`${walletName} wallet extension not found. Please install it from your browser's extension store.`);
+          } else if (err.name === 'WalletConnectionError') {
+            setAuthError('Connection was rejected. Please try again.');
+          } else {
+            console.error("Connect error:", err);
+            setAuthError(err.message || "Failed to connect wallet.");
+          }
+        }
+      }, 100);
+    } catch (error: any) {
+      console.error("Wallet selection error:", error);
+      setAuthError("Failed to initialize wallet connection.");
+    }
+  }, [selectedRole, select, connect]);
 
-    // Redirect to appropriate dashboard
-    setTimeout(() => {
-      if (selectedRole === 'company') {
-        router.push('/dashboard/company');
-      } else {
-        router.push('/dashboard/freelancer');
-      }
-    }, 500);
-  };
+  // Build display list: use detected wallets if available, otherwise show known wallets
+  const detectedWallets = wallets.filter(w => w.readyState === 'Installed');
+  
+  const displayWallets = detectedWallets.length > 0
+    ? detectedWallets.map(w => ({
+        name: w.adapter.name,
+        color: knownWallets.find(kw => kw.name === w.adapter.name)?.color || '#666',
+        icon: knownWallets.find(kw => kw.name === w.adapter.name)?.icon || 'account_balance_wallet',
+        iconUrl: w.adapter.icon,
+        installed: true,
+      }))
+    : knownWallets.map(kw => ({ ...kw, iconUrl: null, installed: false }));
 
   return (
     <div className="fixed inset-0 w-full h-full bg-surface text-on-surface flex items-center justify-center">
@@ -168,58 +253,80 @@ export default function OnboardPage() {
               </h3>
               <span className={cn(
                 "font-mono text-[11px]",
-                connectedWallet ? "text-verified-600" : "text-outline"
+                connected ? "text-verified-600" : "text-outline"
               )}>
-                {connectedWallet ? 'Connected' : selectedRole ? 'Ready' : 'Awaiting Phase 01'}
+                {connected ? 'Connected' : selectedRole ? 'Ready' : 'Awaiting Phase 01'}
               </span>
             </div>
 
             <div className="space-y-3">
-              {wallets.map((wallet) => (
-                <button
-                  key={wallet.id}
-                  onClick={() => handleWalletConnect(wallet.id)}
-                  disabled={!selectedRole || connectingWallet !== null}
-                  className={cn(
-                    "w-full flex items-center justify-between p-4 border transition-colors group",
-                    connectedWallet === wallet.id
-                      ? "border-verified-600 bg-verified-600/5"
-                      : "border-ink-900/20 hover:bg-ink-900/5"
-                  )}
-                >
-                  <div className="flex items-center gap-4">
-                    <div
-                      className="w-8 h-8 rounded flex items-center justify-center"
-                      style={{ backgroundColor: wallet.color }}
-                    >
-                      <span className="material-symbols-outlined text-white text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>
-                        {wallet.icon}
-                      </span>
+              {displayWallets.map((w) => {
+                const isThisWalletConnecting = connecting && wallet?.adapter.name === w.name;
+                const isThisWalletConnected = connected && wallet?.adapter.name === w.name;
+
+                return (
+                  <button
+                    key={w.name}
+                    onClick={() => handleWalletConnect(w.name)}
+                    disabled={!selectedRole || connecting || isAuthenticating}
+                    className={cn(
+                      "w-full flex items-center justify-between p-4 border transition-colors group",
+                      isThisWalletConnected
+                        ? "border-verified-600 bg-verified-600/5"
+                        : "border-ink-900/20 hover:bg-ink-900/5"
+                    )}
+                  >
+                    <div className="flex items-center gap-4">
+                      {w.iconUrl ? (
+                        <img src={w.iconUrl} alt={w.name} className="w-8 h-8 rounded" />
+                      ) : (
+                        <div
+                          className="w-8 h-8 rounded flex items-center justify-center"
+                          style={{ backgroundColor: w.color }}
+                        >
+                          <span className="material-symbols-outlined text-white text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>
+                            {w.icon}
+                          </span>
+                        </div>
+                      )}
+                      <div className="flex flex-col items-start">
+                        <span className={cn(
+                          "font-mono transition-all",
+                          isThisWalletConnected ? "text-verified-600 font-bold" : "text-ink-900 group-hover:font-bold"
+                        )}>
+                          {w.name}
+                        </span>
+                        {!w.installed && (
+                          <span className="text-[9px] text-ink-900/40 font-mono">NOT DETECTED — CLICK TO TRY</span>
+                        )}
+                      </div>
                     </div>
                     <span className={cn(
-                      "font-mono transition-all",
-                      connectedWallet === wallet.id ? "text-verified-600 font-bold" : "text-ink-900 group-hover:font-bold"
+                      "font-mono text-[10px]",
+                      isThisWalletConnected
+                        ? "text-verified-600"
+                        : isThisWalletConnecting || isAuthenticating
+                          ? "text-brass-500"
+                          : "text-ink-900/40 group-hover:text-brass-500"
                     )}>
-                      {wallet.name}
+                      {isThisWalletConnected
+                        ? 'AUTHENTICATED'
+                        : isThisWalletConnecting
+                          ? 'SIGNING...'
+                          : isAuthenticating
+                            ? 'AUTHENTICATING...'
+                            : 'ESTABLISH LINK'}
                     </span>
-                  </div>
-                  <span className={cn(
-                    "font-mono text-[10px]",
-                    connectedWallet === wallet.id
-                      ? "text-verified-600"
-                      : connectingWallet === wallet.id
-                        ? "text-brass-500"
-                        : "text-ink-900/40 group-hover:text-brass-500"
-                  )}>
-                    {connectedWallet === wallet.id
-                      ? 'CONNECTED'
-                      : connectingWallet === wallet.id
-                        ? 'AUTHENTICATING...'
-                        : 'ESTABLISH LINK'}
-                  </span>
-                </button>
-              ))}
+                  </button>
+                );
+              })}
             </div>
+
+            {authError && (
+              <div className="mt-4 p-3 bg-red-50 text-red-600 text-xs font-mono rounded border border-red-100">
+                <span className="font-bold">ERROR:</span> {authError}
+              </div>
+            )}
           </section>
 
           {/* Footer */}

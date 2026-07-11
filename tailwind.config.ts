@@ -10,8 +10,8 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        headline: ['"Source Serif 4"', 'serif'],
-        body: ['"Hanken Grotesk"', 'sans-serif'],
+        headline: ['var(--font-outfit)', 'sans-serif'],
+        body: ['var(--font-inter)', 'sans-serif'],
         mono: ['"JetBrains Mono"', 'monospace'],
       },
       colors: {

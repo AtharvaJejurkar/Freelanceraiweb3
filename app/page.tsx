@@ -56,17 +56,7 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* Decorative elements */}
-          <div className="absolute bottom-10 left-10 hidden lg:block opacity-20">
-            <span className="material-symbols-outlined text-[120px] text-brass-500" style={{ fontVariationSettings: "'wght' 100" }}>
-              history_edu
-            </span>
-          </div>
-          <div className="absolute top-40 right-10 hidden lg:block opacity-20">
-            <span className="material-symbols-outlined text-[120px] text-brass-500" style={{ fontVariationSettings: "'wght' 100" }}>
-              verified_user
-            </span>
-          </div>
+          {/* Decorative elements removed per user request */}
         </section>
 
         {/* Role Explainer Cards */}

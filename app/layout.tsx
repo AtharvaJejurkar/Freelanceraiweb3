@@ -1,5 +1,10 @@
 import './globals.css';
 import type { Metadata } from 'next';
+import { Inter, Outfit } from 'next/font/google';
+import { SolanaProvider } from '@/components/providers/solana-provider';
+
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
+const outfit = Outfit({ subsets: ['latin'], variable: '--font-outfit' });
 
 export const metadata: Metadata = {
   title: 'EscrowAI - On-Chain Freelance Security',
@@ -29,9 +34,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className={`dark ${inter.variable} ${outfit.variable}`}>
       <body className="bg-surface text-on-surface font-body min-h-screen antialiased">
-        {children}
+        <SolanaProvider>
+          {children}
+        </SolanaProvider>
       </body>
     </html>
   );

@@ -2,296 +2,234 @@
 
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
-import { WaxSeal } from '@/components/ui/wax-seal';
 import { cn } from '@/lib/utils';
-
-const navItems = [
-  { label: 'Disputes', href: '/admin', icon: 'gavel', active: true },
-  { label: 'Projects', href: '/admin/projects', icon: 'account_tree' },
-  { label: 'Users', href: '/admin/users', icon: 'people' },
-  { label: 'Transactions', href: '/admin/transactions', icon: 'receipt_long' },
-];
-
-const platformStats = {
-  totalEscrow: 12450000,
-  openDisputes: 12,
-  aiResolved: 847,
-  escalated: 23,
-  revenue: 248000,
-};
-
-const disputes = [
-  {
-    id: 'DSP-001',
-    project: 'DeFi Dashboard UI',
-    milestone: 'Phase 2: Components',
-    amount: 3500,
-    filedBy: 'Company',
-    filedAgainst: 'Freelancer',
-    status: 'escalated',
-    aiVerdict: 'rule_freelancer',
-    aiConfidence: 78,
-    filedAt: '2024-10-15',
-    reason: 'Deliverables do not match specification requirements for responsive design.',
-  },
-  {
-    id: 'DSP-002',
-    project: 'Smart Contract Audit',
-    milestone: 'Security Analysis',
-    amount: 8000,
-    filedBy: 'Freelancer',
-    filedAgainst: 'Company',
-    status: 'ai_review',
-    aiVerdict: 'rule_company',
-    aiConfidence: 92,
-    filedAt: '2024-10-14',
-    reason: 'Payment withheld despite delivering all audit reports on time.',
-  },
-  {
-    id: 'DSP-003',
-    project: 'Mobile Wallet App',
-    milestone: 'Beta Release',
-    amount: 12500,
-    filedBy: 'Company',
-    filedAgainst: 'Freelancer',
-    status: 'resolved',
-    aiVerdict: 'split',
-    aiConfidence: 65,
-    filedAt: '2024-10-10',
-    resolvedAt: '2024-10-12',
-    finalDecision: 'split',
-    reason: 'App crashes on certain device configurations not in original scope.',
-  },
-];
-
-const aiVerdictLabels: Record<string, { label: string; color: string }> = {
-  rule_freelancer: { label: 'Release to Freelancer', color: 'text-verified-600' },
-  rule_company: { label: 'Refund to Company', color: 'text-dispute-600' },
-  split: { label: 'Split 50/50', color: 'text-brass-500' },
-};
-
-const statusColors: Record<string, string> = {
-  filed: 'bg-surface-variant text-on-surface-variant',
-  ai_review: 'bg-brass-500/20 text-brass-500',
-  verdict_issued: 'bg-surface-container text-on-surface',
-  escalated: 'bg-dispute-600/20 text-dispute-600',
-  resolved: 'bg-verified-600/20 text-verified-600',
-};
+import Link from 'next/link';
 
 export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-surface text-on-surface flex flex-col">
-      <Header role="admin" reputation={100} walletAddress="0xAdmin...Auth" />
+      <Header />
 
-      <div className="flex max-w-container mx-auto flex-grow">
-        {/* Admin Sidebar */}
-        <aside className="hidden md:flex flex-col h-[calc(100vh-80px)] w-64 py-6 bg-admin-700/20 border-r border-outline-variant sticky top-20">
-          <div className="px-6 mb-8 flex items-center gap-3">
-            <div className="w-10 h-10 bg-admin-700/30 flex items-center justify-center border border-admin-700/50 rounded-full">
-              <span className="material-symbols-outlined text-admin-700" style={{ fontVariationSettings: "'FILL' 1" }}>
-                admin_panel_settings
+      <div className="flex w-full flex-grow border-t border-outline-variant/30">
+        {/* Sidebar */}
+        <aside className="w-64 bg-surface border-r border-outline-variant/30 flex flex-col pt-8">
+          <div className="px-6 mb-8">
+            <h2 className="font-mono text-xs text-brass-500 uppercase tracking-widest mb-1">EscrowAI</h2>
+            <p className="font-mono text-[9px] text-outline-variant uppercase tracking-widest">Internal Audit System</p>
+          </div>
+
+          <div className="px-6 mb-10 flex items-center gap-3">
+            <div className="w-10 h-10 bg-surface-container flex items-center justify-center border border-outline-variant rounded-sm">
+              <span className="material-symbols-outlined text-brass-500" style={{ fontVariationSettings: "'FILL' 1" }}>
+                account_balance
               </span>
             </div>
             <div>
-              <div className="font-headline text-lg font-bold text-admin-700">Human Intervention</div>
-              <div className="font-mono text-[10px] text-on-surface-variant uppercase">Authority Panel</div>
+              <div className="font-headline text-lg font-bold text-brass-500">System Admin</div>
+              <div className="font-mono text-[9px] text-on-surface-variant uppercase tracking-widest">Network Authority</div>
             </div>
           </div>
 
-          <nav className="flex-grow flex flex-col gap-1">
-            {navItems.map((item) => (
-              <a
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "flex items-center gap-3 px-6 py-3 font-mono text-sm transition-all",
-                  item.active
-                    ? "text-admin-700 bg-admin-700/10 border-l-4 border-admin-700 translate-x-1"
-                    : "text-on-surface-variant hover:bg-surface-container"
-                )}
-              >
-                <span className="material-symbols-outlined">{item.icon}</span>
-                {item.label}
-              </a>
-            ))}
+          <nav className="flex flex-col gap-2 flex-grow">
+            <div className="flex items-center gap-4 bg-brass-500/10 border-l-2 border-brass-500 px-6 py-3 text-brass-500">
+              <span className="material-symbols-outlined text-sm">view_list</span>
+              <span className="font-mono text-xs tracking-widest">Global Queue</span>
+            </div>
+            <div className="flex items-center gap-4 px-6 py-3 hover:bg-surface-container transition-colors cursor-pointer text-on-surface-variant">
+              <span className="material-symbols-outlined text-sm">group</span>
+              <span className="font-mono text-xs tracking-widest">User Directory</span>
+            </div>
+            <div className="flex items-center gap-4 px-6 py-3 hover:bg-surface-container transition-colors cursor-pointer text-on-surface-variant">
+              <span className="material-symbols-outlined text-sm">account_balance_wallet</span>
+              <span className="font-mono text-xs tracking-widest">Revenue</span>
+            </div>
+            <div className="flex items-center gap-4 px-6 py-3 hover:bg-surface-container transition-colors cursor-pointer text-on-surface-variant relative">
+              <span className="material-symbols-outlined text-sm">warning</span>
+              <span className="font-mono text-xs tracking-widest">System Alerts</span>
+              <div className="absolute right-6 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-dispute-600"></div>
+            </div>
           </nav>
 
-          <div className="mt-auto px-6 pt-6 border-t border-outline-variant/30">
-            <div className="px-4 py-4 bg-surface-container-highest border border-outline-variant">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-admin-700 flex items-center justify-center text-paper-50 font-bold text-sm">
-                  AD
-                </div>
-                <div>
-                  <p className="font-mono text-xs text-on-surface">Admin Authority</p>
-                  <p className="text-[10px] text-on-surface-variant">Final Signatory</p>
-                </div>
+          <div className="px-6 mt-auto pb-8">
+            <button className="w-full bg-brass-500/20 text-brass-500 hover:bg-brass-500 hover:text-ink-900 py-3 font-mono text-[10px] uppercase tracking-widest transition-colors font-bold">
+              New System Alert
+            </button>
+            <div className="mt-12 space-y-4 text-on-surface-variant">
+              <div className="flex items-center gap-3 font-mono text-[10px] uppercase tracking-widest hover:text-on-surface cursor-pointer">
+                <span className="material-symbols-outlined text-sm">description</span>
+                Documentation
+              </div>
+              <div className="flex items-center gap-3 font-mono text-[10px] uppercase tracking-widest hover:text-on-surface cursor-pointer">
+                <span className="material-symbols-outlined text-sm">help</span>
+                Support
               </div>
             </div>
           </div>
         </aside>
 
-        <main className="flex-grow p-margin-desktop min-h-screen bg-surface-dim">
-          {/* Platform Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-12">
-            <div className="bg-surface-container border border-outline-variant p-6">
-              <p className="font-mono text-[10px] text-on-surface-variant mb-1 uppercase">Total Escrow</p>
-              <p className="text-2xl font-headline font-bold text-brass-500">
-                ${(platformStats.totalEscrow / 1000000).toFixed(1)}M
-              </p>
-            </div>
-            <div className="bg-surface-container border border-outline-variant p-6">
-              <p className="font-mono text-[10px] text-on-surface-variant mb-1 uppercase">Open Disputes</p>
-              <p className="text-2xl font-headline font-bold text-dispute-600">{platformStats.openDisputes}</p>
-            </div>
-            <div className="bg-surface-container border border-outline-variant p-6">
-              <p className="font-mono text-[10px] text-on-surface-variant mb-1 uppercase">AI Resolved</p>
-              <p className="text-2xl font-headline font-bold text-verified-600">{platformStats.aiResolved}</p>
-            </div>
-            <div className="bg-surface-container border border-outline-variant p-6">
-              <p className="font-mono text-[10px] text-on-surface-variant mb-1 uppercase">Escalated</p>
-              <p className="text-2xl font-headline font-bold text-brass-500">{platformStats.escalated}</p>
-            </div>
-            <div className="bg-surface-container border border-outline-variant p-6 col-span-2 md:col-span-1">
-              <p className="font-mono text-[10px] text-on-surface-variant mb-1 uppercase">Revenue</p>
-              <p className="text-2xl font-headline font-bold text-on-surface">
-                ${platformStats.revenue.toLocaleString()}
-              </p>
+        {/* Main Content */}
+        <main className="flex-grow bg-surface-dim">
+          {/* Top Header Row */}
+          <div className="flex items-center justify-between border-b border-outline-variant/30 px-10 py-6">
+            <h1 className="text-3xl font-headline font-bold text-brass-500 tracking-wider">
+              HUMAN INTERVENTION<br />TEAM
+            </h1>
+            <div className="flex items-center bg-surface-container border border-outline-variant">
+              <div className="px-4 py-2 border-r border-outline-variant font-mono text-[10px] text-outline-variant tracking-widest uppercase">
+                Admin Node:
+              </div>
+              <div className="px-4 py-2 font-mono text-xs text-on-surface">
+                0x4A...3F73
+              </div>
             </div>
           </div>
 
-          {/* Disputes Queue */}
-          <section>
-            <div className="flex justify-between items-end mb-6 border-b border-outline-variant pb-4">
-              <div>
-                <h3 className="text-3xl font-headline font-semibold text-admin-700">Dispute Resolution Queue</h3>
-                <p className="text-sm text-on-surface-variant">Review AI verdicts and issue final binding decisions.</p>
-              </div>
+          <div className="p-10 max-w-[1200px]">
+            {/* Alert Banner */}
+            <div className="bg-dispute-600/10 border border-dispute-600/30 p-6 flex items-start md:items-center justify-between gap-4 mb-8">
               <div className="flex gap-4">
-                <div className="flex items-center gap-2 px-3 py-1 bg-surface-container-highest border border-outline-variant">
-                  <span className="material-symbols-outlined text-sm">filter_list</span>
-                  <span className="font-mono text-[10px]">STATUS</span>
+                <span className="material-symbols-outlined text-dispute-600 mt-1 md:mt-0">warning</span>
+                <p className="text-sm font-mono text-dispute-600 leading-relaxed">
+                  3 disputes have been awaiting human review for over 24 hours. Action required to maintain trust scores.
+                </p>
+              </div>
+              <button className="font-mono text-[10px] text-dispute-600 uppercase tracking-widest hover:underline whitespace-nowrap">
+                Focus Queue
+              </button>
+            </div>
+
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+              {/* Platform Escrow */}
+              <div className="bg-surface border border-outline-variant p-6 relative overflow-hidden">
+                <div className="flex justify-between items-start mb-6">
+                  <h3 className="font-mono text-[10px] text-on-surface-variant uppercase tracking-widest">Platform Escrow</h3>
+                  <span className="material-symbols-outlined text-on-surface-variant text-lg">account_balance</span>
                 </div>
+                <div className="text-4xl font-headline font-bold text-brass-500 mb-2">$12,490,201.00</div>
+                <div className="font-mono text-[9px] text-outline-variant uppercase tracking-widest">Verified on Solana Chain</div>
+              </div>
+
+              {/* Active Projects */}
+              <div className="bg-surface border border-outline-variant p-6 relative overflow-hidden">
+                <div className="flex justify-between items-start mb-6">
+                  <h3 className="font-mono text-[10px] text-on-surface-variant uppercase tracking-widest">Active Projects</h3>
+                  <span className="material-symbols-outlined text-on-surface-variant text-lg">inventory_2</span>
+                </div>
+                <div className="text-4xl font-headline font-bold text-on-surface mb-2">1,248</div>
+                <div className="font-mono text-[9px] text-outline-variant uppercase tracking-widest">+12% From Last Cycle</div>
+              </div>
+
+              {/* Human Escalations */}
+              <div className="bg-surface border border-brass-500 p-6 relative overflow-hidden shadow-[0_0_15px_rgba(184,134,59,0.1)]">
+                <div className="flex justify-between items-start mb-6">
+                  <h3 className="font-mono text-[10px] text-brass-500 uppercase tracking-widest font-bold">Human Escalations</h3>
+                  <span className="material-symbols-outlined text-brass-500 text-lg">person_alert</span>
+                </div>
+                <div className="text-4xl font-headline font-bold text-on-surface mb-2">3</div>
+                <div className="font-mono text-[9px] text-brass-500 uppercase tracking-widest font-bold">Critical Response Required</div>
               </div>
             </div>
 
-            <div className="space-y-6">
-              {disputes.map((dispute) => (
-                <div
-                  key={dispute.id}
-                  className={cn(
-                    "bg-surface-container border-l-4 transition-all",
-                    dispute.status === 'escalated'
-                      ? "border-dispute-600"
-                      : dispute.status === 'resolved'
-                        ? "border-verified-600"
-                        : "border-outline-variant"
-                  )}
-                >
-                  <div className="p-6">
-                    {/* Header */}
-                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-                      <div>
-                        <div className="flex items-center gap-3 mb-1">
-                          <span className="font-mono text-[10px] text-on-surface-variant">{dispute.id}</span>
-                          <span className={cn(
-                            "px-2 py-0.5 font-mono text-[10px] uppercase",
-                            statusColors[dispute.status]
-                          )}>
-                            {dispute.status.replace('_', ' ')}
-                          </span>
-                        </div>
-                        <h4 className="text-xl font-headline font-semibold text-on-surface">{dispute.project}</h4>
-                        <p className="font-mono text-xs text-on-surface-variant">{dispute.milestone}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-2xl font-headline font-bold text-brass-500">
-                          ${dispute.amount.toLocaleString()}
-                        </p>
-                        <p className="font-mono text-[10px] text-on-surface-variant">Filed: {dispute.filedAt}</p>
-                      </div>
+            {/* Queue Table Section */}
+            <div>
+              <div className="flex justify-between items-end mb-6">
+                <div>
+                  <h2 className="text-2xl font-headline font-semibold text-on-surface mb-1">Escalated Disputes Queue</h2>
+                  <p className="text-sm font-body text-on-surface-variant">Manual arbitration required for automated protocol failures.</p>
+                </div>
+                <div className="flex gap-2">
+                  <button className="w-10 h-10 bg-surface-container border border-outline-variant flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors">
+                    <span className="material-symbols-outlined text-sm">filter_list</span>
+                  </button>
+                  <button className="w-10 h-10 bg-surface-container border border-outline-variant flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors">
+                    <span className="material-symbols-outlined text-sm">refresh</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="bg-surface border border-outline-variant">
+                {/* Table Header */}
+                <div className="grid grid-cols-12 gap-4 p-4 border-b border-outline-variant/50 font-mono text-[10px] text-outline-variant uppercase tracking-widest">
+                  <div className="col-span-2">Case ID</div>
+                  <div className="col-span-5">Project</div>
+                  <div className="col-span-2 text-center">Time Waiting</div>
+                  <div className="col-span-2">Status</div>
+                  <div className="col-span-1 text-right">Action</div>
+                </div>
+
+                {/* Rows */}
+                <div className="divide-y divide-outline-variant/30">
+                  {/* Row 1 */}
+                  <div className="grid grid-cols-12 gap-4 p-4 items-center hover:bg-surface-container-low transition-colors">
+                    <div className="col-span-2 font-mono text-sm text-brass-500">#ESC-882-901</div>
+                    <div className="col-span-5">
+                      <div className="font-mono text-sm text-on-surface mb-1">Layer 2 DEX UI Overhaul</div>
+                      <div className="font-mono text-[9px] text-outline-variant uppercase tracking-widest">Client: Velox Labs</div>
                     </div>
-
-                    {/* AI Verdict Section */}
-                    <div className="bg-surface-container-low border border-outline-variant p-4 mb-6">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2">
-                          <span className="material-symbols-outlined text-brass-500">smart_toy</span>
-                          <span className="font-mono text-xs text-brass-500 uppercase">AI Judge Verdict</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono text-xs text-on-surface-variant">Confidence:</span>
-                          <div className={cn(
-                            "font-mono text-sm font-bold",
-                            dispute.aiConfidence >= 80 ? "text-verified-600" : "text-brass-500"
-                          )}>
-                            {dispute.aiConfidence}%
-                          </div>
-                        </div>
-                      </div>
-                      <p className={cn("font-mono text-sm", aiVerdictLabels[dispute.aiVerdict]?.color)}>
-                        Recommended: {aiVerdictLabels[dispute.aiVerdict]?.label}
-                      </p>
+                    <div className="col-span-2 text-center font-mono text-sm text-dispute-600">26h 12m</div>
+                    <div className="col-span-2 flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-brass-500"></div>
+                      <span className="font-mono text-[10px] text-brass-500 uppercase tracking-widest font-bold">Awaiting Human</span>
                     </div>
-
-                    {/* Reason */}
-                    <div className="mb-6">
-                      <p className="font-mono text-[10px] text-on-surface-variant uppercase mb-1">Reason Filed</p>
-                      <p className="text-sm text-on-surface-variant">{dispute.reason}</p>
+                    <div className="col-span-1 text-right">
+                      <Link href="/admin/disputes/882-901" className="inline-block border border-outline-variant text-on-surface hover:border-brass-500 hover:text-brass-500 px-4 py-2 font-mono text-[10px] uppercase tracking-widest transition-colors">
+                        Review Case
+                      </Link>
                     </div>
+                  </div>
 
-                    {/* Parties */}
-                    <div className="grid grid-cols-2 gap-4 py-4 border-t border-outline-variant/30">
-                      <div>
-                        <p className="font-mono text-[10px] text-on-surface-variant mb-1">Filed By</p>
-                        <p className="font-mono text-sm text-on-surface">{dispute.filedBy}</p>
-                      </div>
-                      <div>
-                        <p className="font-mono text-[10px] text-on-surface-variant mb-1">Filed Against</p>
-                        <p className="font-mono text-sm text-on-surface">{dispute.filedAgainst}</p>
-                      </div>
+                  {/* Row 2 */}
+                  <div className="grid grid-cols-12 gap-4 p-4 items-center hover:bg-surface-container-low transition-colors">
+                    <div className="col-span-2 font-mono text-sm text-brass-500">#ESC-901-443</div>
+                    <div className="col-span-5">
+                      <div className="font-mono text-sm text-on-surface mb-1">Solana Smart Contract Audit</div>
+                      <div className="font-mono text-[9px] text-outline-variant uppercase tracking-widest">Client: DeFi Forge</div>
                     </div>
+                    <div className="col-span-2 text-center font-mono text-sm text-on-surface-variant">25h 08m</div>
+                    <div className="col-span-2 flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-brass-500"></div>
+                      <span className="font-mono text-[10px] text-brass-500 uppercase tracking-widest font-bold">Awaiting Human</span>
+                    </div>
+                    <div className="col-span-1 text-right">
+                      <Link href="/admin/disputes/901-443" className="inline-block border border-outline-variant text-on-surface hover:border-brass-500 hover:text-brass-500 px-4 py-2 font-mono text-[10px] uppercase tracking-widest transition-colors">
+                        Review Case
+                      </Link>
+                    </div>
+                  </div>
 
-                    {/* Actions */}
-                    {dispute.status !== 'resolved' && (
-                      <div className="flex flex-wrap gap-3 mt-4">
-                        <button className="bg-verified-600 text-paper-50 px-6 py-2 font-mono text-xs font-bold uppercase tracking-widest hover:bg-verified-600/80 transition-colors flex items-center gap-2">
-                          <WaxSeal size="sm" showCheck={false} className="!w-4 !h-4" />
-                          Final Decision
-                        </button>
-                        <button className="border border-outline text-on-surface px-6 py-2 font-mono text-xs font-bold uppercase tracking-widest hover:bg-surface-container transition-colors">
-                          View Evidence
-                        </button>
-                        <button className="border border-outline text-on-surface px-6 py-2 font-mono text-xs font-bold uppercase tracking-widest hover:bg-surface-container transition-colors">
-                          Chat History
-                        </button>
-                      </div>
-                    )}
-
-                    {/* Resolution Info */}
-                    {dispute.status === 'resolved' && (
-                      <div className="mt-4 flex items-center gap-4 bg-verified-600/10 border border-verified-600/30 p-4">
-                        <WaxSeal size="sm" />
-                        <div>
-                          <p className="font-mono text-xs text-verified-600 uppercase">Resolved</p>
-                          <p className="text-sm text-on-surface">
-                            Final Decision: {aiVerdictLabels[dispute.finalDecision || '']?.label}
-                          </p>
-                          <p className="font-mono text-[10px] text-on-surface-variant">
-                            Completed: {dispute.resolvedAt}
-                          </p>
-                        </div>
-                      </div>
-                    )}
+                  {/* Row 3 */}
+                  <div className="grid grid-cols-12 gap-4 p-4 items-center hover:bg-surface-container-low transition-colors">
+                    <div className="col-span-2 font-mono text-sm text-brass-500">#ESC-772-109</div>
+                    <div className="col-span-5">
+                      <div className="font-mono text-sm text-on-surface mb-1">Global Asset Liquidity Protocol</div>
+                      <div className="font-mono text-[9px] text-outline-variant uppercase tracking-widest">Client: Apex Capital</div>
+                    </div>
+                    <div className="col-span-2 text-center font-mono text-sm text-on-surface-variant">24h 55m</div>
+                    <div className="col-span-2 flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-brass-500"></div>
+                      <span className="font-mono text-[10px] text-brass-500 uppercase tracking-widest font-bold">Awaiting Human</span>
+                    </div>
+                    <div className="col-span-1 text-right">
+                      <Link href="/admin/disputes/772-109" className="inline-block border border-outline-variant text-on-surface hover:border-brass-500 hover:text-brass-500 px-4 py-2 font-mono text-[10px] uppercase tracking-widest transition-colors">
+                        Review Case
+                      </Link>
+                    </div>
                   </div>
                 </div>
-              ))}
+              </div>
             </div>
-          </section>
+            
+            {/* Background design elements */}
+            <div className="mt-20 border border-outline-variant border-dashed p-12 flex items-center justify-end opacity-20">
+              <div className="w-16 h-16 border-2 border-brass-500 rounded flex items-center justify-center rotate-12">
+                 <span className="material-symbols-outlined text-3xl text-brass-500">verified</span>
+              </div>
+            </div>
+
+          </div>
         </main>
       </div>
-
-      <Footer />
     </div>
   );
 }
