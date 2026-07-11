@@ -23,9 +23,9 @@ export default function LandingPage() {
     <div className="min-h-screen bg-surface text-on-surface flex flex-col">
       <Header />
 
-      <main className="flex-grow pt-20">
+      <main className="flex-grow pt-8">
         {/* Hero Section */}
-        <section className="relative min-h-[900px] flex items-center justify-center px-margin-mobile md:px-margin-desktop overflow-hidden">
+        <section className="relative min-h-[600px] flex items-center justify-center px-margin-mobile md:px-margin-desktop overflow-hidden">
           <div className="absolute inset-0 ledger-line-bg opacity-[0.03]" />
 
           <div className="relative z-10 max-w-4xl text-center space-y-8">

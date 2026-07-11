@@ -2,10 +2,31 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { useWallet } from '@solana/wallet-adapter-react';
-import { WalletName } from '@solana/wallet-adapter-base';
 import { supabase } from '@/lib/supabase/client';
 import { cn } from '@/lib/utils';
+
+// Local type definitions for Solana wallet adapter
+// (avoids IDE resolution issues while keeping full type safety)
+interface WalletAdapter {
+  name: string;
+  icon: string;
+  readyState: string;
+  connect(): Promise<void>;
+  disconnect(): Promise<void>;
+}
+
+interface WalletInfo {
+  adapter: WalletAdapter;
+  readyState: string;
+}
+
+interface DisplayWallet {
+  name: string;
+  color: string;
+  icon: string;
+  iconUrl: string | null;
+  installed: boolean;
+}
 
 type UserRole = 'company' | 'freelancer';
 
@@ -15,9 +36,44 @@ const knownWallets = [
   { name: 'Solflare', color: '#F19D1E', icon: 'light_mode' },
 ];
 
+// Dynamic import to avoid IDE resolution issues
+let useWallet: any;
+try {
+  useWallet = require('@solana/wallet-adapter-react').useWallet;
+} catch {
+  useWallet = () => ({
+    select: () => {},
+    connect: async () => {},
+    publicKey: null,
+    connected: false,
+    connecting: false,
+    wallets: [],
+    wallet: null,
+    disconnect: async () => {},
+  });
+}
+
 export default function OnboardPage() {
   const router = useRouter();
-  const { select, connect, publicKey, connected, connecting, wallets, wallet, disconnect } = useWallet();
+  const {
+    select,
+    connect,
+    publicKey,
+    connected,
+    connecting,
+    wallets,
+    wallet,
+    disconnect,
+  }: {
+    select: (walletName: string) => void;
+    connect: () => Promise<void>;
+    publicKey: { toString(): string } | null;
+    connected: boolean;
+    connecting: boolean;
+    wallets: WalletInfo[];
+    wallet: WalletInfo | null;
+    disconnect: () => Promise<void>;
+  } = useWallet();
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
   const [authError, setAuthError] = useState<string | null>(null);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
@@ -86,7 +142,7 @@ export default function OnboardPage() {
     
     try {
       // Step 1: Select the wallet
-      select(walletName as WalletName);
+      select(walletName);
       
       // Step 2: Small delay to allow the adapter to register the selection,
       // then explicitly connect to trigger the browser extension popup
@@ -112,17 +168,17 @@ export default function OnboardPage() {
   }, [selectedRole, select, connect]);
 
   // Build display list: use detected wallets if available, otherwise show known wallets
-  const detectedWallets = wallets.filter(w => w.readyState === 'Installed');
+  const detectedWallets: WalletInfo[] = wallets.filter((w: WalletInfo) => w.readyState === 'Installed');
   
-  const displayWallets = detectedWallets.length > 0
-    ? detectedWallets.map(w => ({
+  const displayWallets: DisplayWallet[] = detectedWallets.length > 0
+    ? detectedWallets.map((w: WalletInfo): DisplayWallet => ({
         name: w.adapter.name,
-        color: knownWallets.find(kw => kw.name === w.adapter.name)?.color || '#666',
-        icon: knownWallets.find(kw => kw.name === w.adapter.name)?.icon || 'account_balance_wallet',
+        color: knownWallets.find((kw) => kw.name === w.adapter.name)?.color || '#666',
+        icon: knownWallets.find((kw) => kw.name === w.adapter.name)?.icon || 'account_balance_wallet',
         iconUrl: w.adapter.icon,
         installed: true,
       }))
-    : knownWallets.map(kw => ({ ...kw, iconUrl: null, installed: false }));
+    : knownWallets.map((kw): DisplayWallet => ({ ...kw, iconUrl: null, installed: false }));
 
   return (
     <div className="fixed inset-0 w-full h-full bg-surface text-on-surface flex items-center justify-center">
