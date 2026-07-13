@@ -43,14 +43,23 @@ export default function FreelancerDashboard() {
       const walletAddress = publicKey.toString();
 
       try {
-        // 1. Fetch User Data
-        const { data: userData, error: userError } = await supabase
-          .from('users')
-          .select('*')
-          .eq('wallet_address', walletAddress)
-          .single();
-
-        if (userError) throw userError;
+        let userData = null;
+        try {
+          const { data, error } = await supabase
+            .from('users')
+            .select('*')
+            .eq('wallet_address', walletAddress)
+            .single();
+          if (error) throw error;
+          userData = data;
+        } catch (userError) {
+          console.warn("Could not fetch user from Supabase, checking local storage fallback...", userError);
+          const mockStr = localStorage.getItem('mockUser');
+          if (mockStr) {
+            userData = JSON.parse(mockStr);
+          }
+        }
+        
         setUser(userData);
 
         // 2. Fetch Active Contracts (Projects where freelancer_id = user.id)

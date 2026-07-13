@@ -1,0 +1,10 @@
+\\?\C:\Users\jejur_azv0lvr\OneDrive\Desktop\Projects\freelanceraiweb3\target\release\deps\thiserror-47d9e09271a4c177.d: C:\Users\jejur_azv0lvr\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-1.0.69\src\lib.rs C:\Users\jejur_azv0lvr\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-1.0.69\src\aserror.rs C:\Users\jejur_azv0lvr\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-1.0.69\src\display.rs C:\Users\jejur_azv0lvr\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-1.0.69\src\provide.rs
+
+\\?\C:\Users\jejur_azv0lvr\OneDrive\Desktop\Projects\freelanceraiweb3\target\release\deps\libthiserror-47d9e09271a4c177.rlib: C:\Users\jejur_azv0lvr\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-1.0.69\src\lib.rs C:\Users\jejur_azv0lvr\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-1.0.69\src\aserror.rs C:\Users\jejur_azv0lvr\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-1.0.69\src\display.rs C:\Users\jejur_azv0lvr\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-1.0.69\src\provide.rs
+
+\\?\C:\Users\jejur_azv0lvr\OneDrive\Desktop\Projects\freelanceraiweb3\target\release\deps\libthiserror-47d9e09271a4c177.rmeta: C:\Users\jejur_azv0lvr\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-1.0.69\src\lib.rs C:\Users\jejur_azv0lvr\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-1.0.69\src\aserror.rs C:\Users\jejur_azv0lvr\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-1.0.69\src\display.rs C:\Users\jejur_azv0lvr\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-1.0.69\src\provide.rs
+
+C:\Users\jejur_azv0lvr\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-1.0.69\src\lib.rs:
+C:\Users\jejur_azv0lvr\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-1.0.69\src\aserror.rs:
+C:\Users\jejur_azv0lvr\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-1.0.69\src\display.rs:
+C:\Users\jejur_azv0lvr\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-1.0.69\src\provide.rs:
