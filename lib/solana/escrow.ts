@@ -51,7 +51,7 @@ export async function initializeEscrow(
   const provider = getProvider(wallet);
   // Import the IDL after anchor build generates it
   const { default: idl } = await import('@/programs/escrow/target/idl/escrow.json');
-  const program = new Program(idl as any, ESCROW_PROGRAM_ID, provider);
+  const program = new Program(idl as any, provider);
 
   const company = wallet.publicKey;
   const [escrowAccount] = getEscrowAccountPDA(company, projectId);
@@ -90,7 +90,7 @@ export async function acceptFreelancer(
 
   const provider = getProvider(wallet);
   const { default: idl } = await import('@/programs/escrow/target/idl/escrow.json');
-  const program = new Program(idl as any, ESCROW_PROGRAM_ID, provider);
+  const program = new Program(idl as any, provider);
 
   const company = wallet.publicKey;
   const [escrowAccount] = getEscrowAccountPDA(company, projectId);
@@ -121,7 +121,7 @@ export async function releasePayment(
 
   const provider = getProvider(wallet);
   const { default: idl } = await import('@/programs/escrow/target/idl/escrow.json');
-  const program = new Program(idl as any, ESCROW_PROGRAM_ID, provider);
+  const program = new Program(idl as any, provider);
 
   const company = wallet.publicKey;
   const [escrowAccount] = getEscrowAccountPDA(company, projectId);
@@ -154,7 +154,7 @@ export async function cancelEscrow(
 
   const provider = getProvider(wallet);
   const { default: idl } = await import('@/programs/escrow/target/idl/escrow.json');
-  const program = new Program(idl as any, ESCROW_PROGRAM_ID, provider);
+  const program = new Program(idl as any, provider);
 
   const company = wallet.publicKey;
   const [escrowAccount] = getEscrowAccountPDA(company, projectId);
@@ -179,9 +179,9 @@ export async function fetchEscrowState(escrowPda: string) {
   const { default: idl } = await import('@/programs/escrow/target/idl/escrow.json');
   // Read-only provider (no wallet needed)
   const provider = new AnchorProvider(connection, {} as any, {});
-  const program = new Program(idl as any, ESCROW_PROGRAM_ID, provider);
+  const program = new Program(idl as any, provider);
 
-  const account = await program.account.escrowAccount.fetch(new PublicKey(escrowPda));
+  const account = await (program as any).account.escrowAccount.fetch(new PublicKey(escrowPda));
   return account;
 }
 

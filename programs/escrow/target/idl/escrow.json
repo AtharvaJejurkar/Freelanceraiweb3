@@ -1,0 +1,65 @@
+{
+  "version": "0.1.0",
+  "name": "escrow",
+  "instructions": [
+    {
+      "name": "initializeEscrow",
+      "accounts": [
+        {"name": "company", "isMut": true, "isSigner": true},
+        {"name": "escrowAccount", "isMut": true, "isSigner": false},
+        {"name": "vault", "isMut": true, "isSigner": false},
+        {"name": "systemProgram", "isMut": false, "isSigner": false}
+      ],
+      "args": [
+        {"name": "projectId", "type": "string"},
+        {"name": "amount", "type": "u64"}
+      ]
+    },
+    {
+      "name": "acceptFreelancer",
+      "accounts": [
+        {"name": "company", "isMut": true, "isSigner": true},
+        {"name": "escrowAccount", "isMut": true, "isSigner": false}
+      ],
+      "args": [
+        {"name": "freelancer", "type": "publicKey"}
+      ]
+    },
+    {
+      "name": "releasePayment",
+      "accounts": [
+        {"name": "company", "isMut": true, "isSigner": true},
+        {"name": "escrowAccount", "isMut": true, "isSigner": false},
+        {"name": "freelancer", "isMut": true, "isSigner": false},
+        {"name": "vault", "isMut": true, "isSigner": false},
+        {"name": "systemProgram", "isMut": false, "isSigner": false}
+      ],
+      "args": []
+    },
+    {
+      "name": "cancelEscrow",
+      "accounts": [
+        {"name": "company", "isMut": true, "isSigner": true},
+        {"name": "escrowAccount", "isMut": true, "isSigner": false},
+        {"name": "vault", "isMut": true, "isSigner": false},
+        {"name": "systemProgram", "isMut": false, "isSigner": false}
+      ],
+      "args": []
+    }
+  ],
+  "accounts": [
+    {
+      "name": "escrowAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {"name": "company", "type": "publicKey"},
+          {"name": "projectId", "type": "string"},
+          {"name": "amount", "type": "u64"},
+          {"name": "freelancer", "type": {"option": "publicKey"}},
+          {"name": "status", "type": "u8"}
+        ]
+      }
+    }
+  ]
+}

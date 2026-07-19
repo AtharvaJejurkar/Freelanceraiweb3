@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase/client';
+
 import { useRouter } from 'next/navigation';
 
 const navItems = [
@@ -45,15 +45,14 @@ export default function FreelancerDashboard() {
       try {
         let userData = null;
         try {
-          const { data, error } = await supabase
-            .from('users')
-            .select('*')
-            .eq('wallet_address', walletAddress)
-            .single();
-          if (error) throw error;
-          userData = data;
+          const res = await fetch(`/api/users?wallet_address=${walletAddress}`);
+          if (res.ok) {
+            userData = await res.json();
+          } else {
+            throw new Error(await res.text());
+          }
         } catch (userError) {
-          console.warn("Could not fetch user from Supabase, checking local storage fallback...", userError);
+          console.warn("Could not fetch user from API, checking local storage fallback...", userError);
           const mockStr = localStorage.getItem('mockUser');
           if (mockStr) {
             userData = JSON.parse(mockStr);
@@ -63,34 +62,26 @@ export default function FreelancerDashboard() {
         setUser(userData);
 
         // 2. Fetch Active Contracts (Projects where freelancer_id = user.id)
-        if (userData) {
-          const { data: projectsData, error: projectsError } = await supabase
-            .from('projects')
-            .select(`
-              id, 
-              title, 
-              total_value, 
-              status, 
-              escrow_pda,
-              users!projects_company_id_fkey(display_name)
-            `)
-            .eq('freelancer_id', userData.id)
-            .neq('status', 'completed');
-            
-          if (!projectsError && projectsData) {
-            setActiveContracts(projectsData);
+        if (userData && userData.id !== 'mock-user-id') {
+          try {
+            const res = await fetch(`/api/projects?freelancer_id=${userData.id}`);
+            if (res.ok) {
+              const projectsData = await res.json();
+              setActiveContracts(projectsData);
+            }
+          } catch (projectsError) {
+            console.error("Failed to fetch projects from API", projectsError);
           }
 
-          // 3. Fetch Transactions (Mocked for now since table is escrow_transactions)
-          const { data: txData, error: txError } = await supabase
-            .from('escrow_transactions')
-            .select('*')
-            .eq('to_wallet', walletAddress)
-            .order('created_at', { ascending: false })
-            .limit(5);
-            
-          if (!txError && txData) {
-            setTransactions(txData);
+          // 3. Fetch Transactions
+          try {
+            const res = await fetch(`/api/transactions?to_wallet=${walletAddress}`);
+            if (res.ok) {
+              const txData = await res.json();
+              setTransactions(txData);
+            }
+          } catch (txError) {
+            console.error("Failed to fetch transactions from API", txError);
           }
         }
       } catch (err) {

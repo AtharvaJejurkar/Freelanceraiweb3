@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase/client';
+
 import { cn } from '@/lib/utils';
 
 // Local type definitions for Solana wallet adapter
@@ -55,52 +55,69 @@ export default function OnboardPage() {
   const [authError, setAuthError] = useState<string | null>(null);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
 
-  // Once connected, authenticate with Supabase
+  // Once connected, authenticate via API (falls back to localStorage on failure)
   useEffect(() => {
     async function authenticateUser() {
       if (connected && publicKey && selectedRole && !isAuthenticating) {
         setIsAuthenticating(true);
         try {
           const walletAddress = publicKey.toString();
-          
-          // Check if user exists in Supabase
-          const { data: existingUser, error: fetchError } = await supabase
-            .from('users')
-            .select('*')
-            .eq('wallet_address', walletAddress)
-            .single();
+          let existingUser = null;
+          let apiAvailable = false;
 
-          if (fetchError && fetchError.code !== 'PGRST116') {
-            throw fetchError;
+          // Try fetching from our new Next.js API
+          try {
+            const res = await fetch(`/api/users?wallet_address=${walletAddress}`);
+            if (res.ok) {
+              existingUser = await res.json();
+              apiAvailable = true;
+            } else if (res.status === 404) {
+              // User not found, proceed to creation
+              apiAvailable = true;
+            } else {
+              console.warn("API fetch error, falling back to local storage.", await res.text());
+            }
+          } catch (networkError) {
+            console.warn("API unreachable. Using local storage.", networkError);
           }
 
-          if (!existingUser) {
-            // Register new user
-            const { error: insertError } = await supabase
-              .from('users')
-              .insert([
-                { 
+          if (apiAvailable && !existingUser) {
+            // Try to register new user via API
+            try {
+              const res = await fetch('/api/users', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
                   wallet_address: walletAddress, 
                   role: selectedRole,
                   display_name: `User_${walletAddress.substring(0, 4)}`,
                   reputation_score: 100
-                }
-              ]);
-            
-            if (insertError) {
-              console.warn("Supabase insert error (likely RLS). Falling back to local storage.", insertError);
-              localStorage.setItem('mockUser', JSON.stringify({
-                id: 'mock-user-id',
-                wallet_address: walletAddress,
-                role: selectedRole,
-                display_name: `User_${walletAddress.substring(0, 4)}`,
-                reputation_score: 100,
-                total_earned: 0,
-                total_escrowed: 0,
-                projects_completed: 0,
-                disputes_won: 0
-              }));
+                })
+              });
+              
+              if (!res.ok) {
+                console.warn("API insert error. Falling back to local storage.", await res.text());
+              } else {
+                existingUser = await res.json();
+              }
+            } catch (insertNetworkError) {
+              console.warn("API insert failed (network). Using local storage.", insertNetworkError);
             }
+          }
+
+          // Always save to localStorage as fallback
+          if (!existingUser) {
+            localStorage.setItem('mockUser', JSON.stringify({
+              id: 'mock-user-id',
+              wallet_address: walletAddress,
+              role: selectedRole,
+              display_name: `User_${walletAddress.substring(0, 4)}`,
+              reputation_score: 100,
+              total_earned: 0,
+              total_escrowed: 0,
+              projects_completed: 0,
+              disputes_won: 0
+            }));
           }
 
           // Redirect to appropriate dashboard
@@ -185,7 +202,7 @@ export default function OnboardPage() {
       <div className="absolute inset-0 opacity-30 grayscale pointer-events-none ledger-line-bg" />
 
       {/* Modal */}
-      <div className="relative w-full max-w-4xl mx-4 bg-white text-ink-900 shadow-2xl flex flex-col md:flex-row overflow-hidden">
+      <div className="relative w-full max-w-4xl mx-4 bg-surface-container text-on-surface shadow-2xl flex flex-col md:flex-row overflow-hidden border border-outline-variant/20 rounded-xl">
         {/* Left Panel */}
         <div className="w-full md:w-5/12 bg-ink-900 text-paper-50 p-8 md:p-12 flex flex-col justify-between border-r border-outline-variant/10">
           <div className="z-10">
@@ -230,7 +247,7 @@ export default function OnboardPage() {
           {/* Phase 01: Role Selection */}
           <section>
             <div className="flex justify-between items-end mb-6">
-              <h3 className="font-mono text-[11px] text-surface-container-high tracking-widest uppercase">
+              <h3 className="font-mono text-[11px] text-on-surface-variant tracking-widest uppercase">
                 Phase 01: Define Authority
               </h3>
               <span className="font-mono text-brass-500 text-[11px]">
@@ -245,24 +262,24 @@ export default function OnboardPage() {
                   "group text-left p-6 border-2 transition-all duration-300",
                   selectedRole === 'company'
                     ? "border-brass-500 bg-brass-500/5"
-                    : "border-surface-container-lowest/10 hover:border-brass-500 bg-white"
+                    : "border-outline-variant/20 hover:border-brass-500 bg-surface-container-high"
                 )}
               >
                 <div className="flex items-center justify-between mb-2">
                   <span className={cn(
                     "font-headline text-lg transition-colors",
-                    selectedRole === 'company' ? "text-brass-500" : "text-ink-900 group-hover:text-brass-500"
+                    selectedRole === 'company' ? "text-brass-500" : "text-on-surface group-hover:text-brass-500"
                   )}>
                     I&apos;m a Company
                   </span>
                   <span className={cn(
                     "material-symbols-outlined transition-colors",
-                    selectedRole === 'company' ? "text-brass-500" : "text-ink-900/30 group-hover:text-brass-500"
+                    selectedRole === 'company' ? "text-brass-500" : "text-on-surface-variant group-hover:text-brass-500"
                   )}>
                     corporate_fare
                   </span>
                 </div>
-                <p className="text-sm text-surface-container-high">
+                <p className="text-sm text-on-surface-variant">
                   I want to hire &amp; pay — initiate escrow contracts for top-tier freelancers with notarized security.
                 </p>
               </button>
@@ -273,24 +290,24 @@ export default function OnboardPage() {
                   "group text-left p-6 border-2 transition-all duration-300",
                   selectedRole === 'freelancer'
                     ? "border-brass-500 bg-brass-500/5"
-                    : "border-surface-container-lowest/10 hover:border-brass-500 bg-white"
+                    : "border-outline-variant/20 hover:border-brass-500 bg-surface-container-high"
                 )}
               >
                 <div className="flex items-center justify-between mb-2">
                   <span className={cn(
                     "font-headline text-lg transition-colors",
-                    selectedRole === 'freelancer' ? "text-brass-500" : "text-ink-900 group-hover:text-brass-500"
+                    selectedRole === 'freelancer' ? "text-brass-500" : "text-on-surface group-hover:text-brass-500"
                   )}>
                     I&apos;m a Freelancer
                   </span>
                   <span className={cn(
                     "material-symbols-outlined transition-colors",
-                    selectedRole === 'freelancer' ? "text-brass-500" : "text-ink-900/30 group-hover:text-brass-500"
+                    selectedRole === 'freelancer' ? "text-brass-500" : "text-on-surface-variant group-hover:text-brass-500"
                   )}>
                     badge
                   </span>
                 </div>
-                <p className="text-sm text-surface-container-high">
+                <p className="text-sm text-on-surface-variant">
                   I want to get hired &amp; paid — showcase my verified work history and secure guaranteed milestone payments.
                 </p>
               </button>
@@ -302,8 +319,8 @@ export default function OnboardPage() {
             "transition-opacity duration-500",
             !selectedRole ? "opacity-40 pointer-events-none" : "opacity-100"
           )}>
-            <div className="flex justify-between items-end mb-6 border-t border-outline-variant/10 pt-8">
-              <h3 className="font-mono text-[11px] text-surface-container-high tracking-widest uppercase">
+            <div className="flex justify-between items-end mb-6 border-t border-outline-variant/20 pt-8">
+              <h3 className="font-mono text-[11px] text-on-surface-variant tracking-widest uppercase">
                 Phase 02: Cryptographic Signature
               </h3>
               <span className={cn(
@@ -328,7 +345,7 @@ export default function OnboardPage() {
                       "w-full flex items-center justify-between p-4 border transition-colors group",
                       isThisWalletConnected
                         ? "border-verified-600 bg-verified-600/5"
-                        : "border-ink-900/20 hover:bg-ink-900/5"
+                        : "border-outline-variant/20 bg-surface-container-high hover:border-brass-500/50"
                     )}
                   >
                     <div className="flex items-center gap-4">
@@ -347,12 +364,12 @@ export default function OnboardPage() {
                       <div className="flex flex-col items-start">
                         <span className={cn(
                           "font-mono transition-all",
-                          isThisWalletConnected ? "text-verified-600 font-bold" : "text-ink-900 group-hover:font-bold"
+                          isThisWalletConnected ? "text-verified-600 font-bold" : "text-on-surface group-hover:font-bold"
                         )}>
                           {w.name}
                         </span>
                         {!w.installed && (
-                          <span className="text-[9px] text-ink-900/40 font-mono">NOT DETECTED — CLICK TO TRY</span>
+                          <span className="text-[9px] text-on-surface-variant font-mono">NOT DETECTED — CLICK TO TRY</span>
                         )}
                       </div>
                     </div>
@@ -362,7 +379,7 @@ export default function OnboardPage() {
                         ? "text-verified-600"
                         : isThisWalletConnecting || isAuthenticating
                           ? "text-brass-500"
-                          : "text-ink-900/40 group-hover:text-brass-500"
+                          : "text-on-surface-variant group-hover:text-brass-500"
                     )}>
                       {isThisWalletConnected
                         ? 'AUTHENTICATED'
