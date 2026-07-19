@@ -4,13 +4,14 @@
   <img src="https://img.shields.io/badge/Next.js-13.5-black?logo=next.js">
   <img src="https://img.shields.io/badge/Solana-Web3-14F195?logo=solana&logoColor=white">
   <img src="https://img.shields.io/badge/Anchor-Framework-blue">
-  <img src="https://img.shields.io/badge/Supabase-Database-3ECF8E?logo=supabase&logoColor=white">
+  <img src="https://img.shields.io/badge/Neon-Database-00E599?logo=neon&logoColor=black">
+  <img src="https://img.shields.io/badge/Drizzle-ORM-C5F74F?logo=drizzle&logoColor=black">
   <img src="https://img.shields.io/badge/TailwindCSS-Styling-38B2AC?logo=tailwind-css&logoColor=white">
 </div>
 
 ## 🚀 Project Overview
 
-This project is a decentralized freelancing platform built on the **Solana** blockchain. It leverages Web3 technologies to handle escrow contracts for secure payments, alongside a modern web tech stack (Next.js & Supabase) for the frontend interface and off-chain data storage. 
+This project is a decentralized freelancing platform built on the **Solana** blockchain. It leverages Web3 technologies to handle escrow contracts for secure payments, alongside a modern web tech stack (Next.js, Neon Database, & Drizzle ORM) for the frontend interface and off-chain data storage. 
 
 By integrating Solana smart contracts (programs), the platform ensures that funds are locked securely until project milestones are met, building a trustless environment for clients and freelancers.
 
@@ -31,7 +32,8 @@ By integrating Solana smart contracts (programs), the platform ensures that fund
 *   **Anchor Framework**: Framework for Solana's Sealevel runtime providing ergonomic smart contract development. The project includes a custom **`escrow`** program written in **Rust**.
 
 ### 🗄️ Backend & Database
-*   **Supabase**: Handles off-chain relational data (user profiles, project details, chat) using a PostgreSQL database, while critical financial transactions are secured on-chain via Solana.
+*   **Neon Database**: Serverless Postgres for handling off-chain relational data (user profiles, project details, chat), while critical financial transactions are secured on-chain via Solana.
+*   **Drizzle ORM**: A lightweight, type-safe TypeScript ORM used to interact with the Neon database.
 
 ---
 
@@ -49,7 +51,7 @@ freelanceraiweb3/
 ├── components/           # Reusable React UI components (Radix UI + Tailwind)
 ├── programs/
 │   └── escrow/           # Rust-based Solana smart contract for handling escrow payments
-├── supabase/             # Supabase configurations and migrations
+├── lib/db/               # Drizzle ORM schema and Neon database configuration
 ├── Anchor.toml           # Solana Anchor workspace configuration
 └── package.json          # Frontend dependencies and scripts
 ```
