@@ -128,7 +128,12 @@ export default function OnboardPage() {
           if (redirectRole === 'company') {
             router.push('/dashboard/company');
           } else {
-            router.push('/dashboard/freelancer');
+            const isOnboarded = existingUser?.is_onboarded || mockUser?.is_onboarded;
+            if (!isOnboarded) {
+              router.push('/onboard/freelancer');
+            } else {
+              router.push('/dashboard/freelancer');
+            }
           }
 
         } catch (error: any) {

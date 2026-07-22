@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, integer, uuid } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, integer, uuid, boolean } from 'drizzle-orm/pg-core';
 
 export const users = pgTable('users', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -10,6 +10,13 @@ export const users = pgTable('users', {
   total_escrowed: integer('total_escrowed').default(0),
   projects_completed: integer('projects_completed').default(0),
   disputes_won: integer('disputes_won').default(0),
+  
+  // Onboarding specific fields
+  domain: text('domain'),
+  experience: text('experience'),
+  bio: text('bio'),
+  is_onboarded: boolean('is_onboarded').default(false),
+  
   created_at: timestamp('created_at').defaultNow(),
 });
 

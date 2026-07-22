@@ -46,3 +46,34 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Internal Server Error', details: error.message }, { status: 500 });
   }
 }
+
+export async function PUT(request: Request) {
+  try {
+    const body = await request.json();
+    const { wallet_address, domain, experience, bio, is_onboarded, display_name } = body;
+
+    if (!wallet_address) {
+      return NextResponse.json({ error: 'wallet_address is required for updating' }, { status: 400 });
+    }
+
+    const updatedUser = await db.update(users)
+      .set({
+        ...(display_name && { display_name }),
+        domain,
+        experience,
+        bio,
+        is_onboarded: is_onboarded !== undefined ? is_onboarded : true,
+      })
+      .where(eq(users.wallet_address, wallet_address))
+      .returning();
+
+    if (updatedUser.length === 0) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    return NextResponse.json(updatedUser[0]);
+  } catch (error: any) {
+    console.error("Database error in PUT /api/users:", error);
+    return NextResponse.json({ error: 'Internal Server Error', details: error.message }, { status: 500 });
+  }
+}
