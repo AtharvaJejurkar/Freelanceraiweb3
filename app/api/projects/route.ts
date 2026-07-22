@@ -1,37 +1,47 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { projects, users } from '@/lib/db/schema';
-import { eq, ne } from 'drizzle-orm';
+import { eq, or, and } from 'drizzle-orm';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const freelancerId = searchParams.get('freelancer_id');
-
-  if (!freelancerId) {
-    return NextResponse.json({ error: 'freelancer_id is required' }, { status: 400 });
-  }
+  const companyId = searchParams.get('company_id');
+  const status = searchParams.get('status');
 
   try {
-    // Drizzle innerJoin to get company details, analogous to Supabase 'users!projects_company_id_fkey'
     const result = await db.select({
       id: projects.id,
       title: projects.title,
+      description: projects.description,
       total_value: projects.total_value,
       status: projects.status,
       escrow_pda: projects.escrow_pda,
-      company: {
+      company_id: projects.company_id,
+      freelancer_id: projects.freelancer_id,
+      users: {
         display_name: users.display_name
       }
     })
     .from(projects)
-    .leftJoin(users, eq(projects.company_id, users.id))
-    .where(eq(projects.freelancer_id, freelancerId as string))
-    // We only want active ones for the dashboard (neq status 'completed')
-    // Not directly supported with a simple where chaining easily without and/or, but we can do:
-    // Actually, eq works for status too. Let's just fetch all for this user and filter for now, or use `ne(projects.status, 'completed')`.
-    ;
+    .leftJoin(users, or(
+      and(eq(projects.company_id, users.id), freelancerId ? eq(projects.freelancer_id, freelancerId) : undefined),
+      and(eq(projects.freelancer_id, users.id), companyId ? eq(projects.company_id, companyId) : undefined)
+    ));
 
-    const filtered = result.filter(p => p.status !== 'completed');
+    let filtered = result;
+
+    if (freelancerId) {
+      filtered = filtered.filter(p => p.freelancer_id === freelancerId);
+    }
+    if (companyId) {
+      filtered = filtered.filter(p => p.company_id === companyId);
+    }
+    if (status) {
+      filtered = filtered.filter(p => p.status === status);
+    } else if (freelancerId || companyId) {
+      filtered = filtered.filter(p => p.status !== 'completed');
+    }
 
     return NextResponse.json(filtered);
   } catch (error: any) {

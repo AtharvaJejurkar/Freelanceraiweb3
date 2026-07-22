@@ -7,10 +7,13 @@ import { WaxSeal } from '@/components/ui/wax-seal';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
+import { useWallet } from '@solana/wallet-adapter-react';
+import { useEffect, useState } from 'react';
+
 const navItems = [
   { label: 'Projects', href: '/dashboard/company', icon: 'account_tree', active: true },
   { label: 'Payments', href: '/dashboard/company/payments', icon: 'payments' },
-  { label: 'Reputation', href: '/dashboard/company/reputation', icon: 'verified_user' },
+  { label: 'Reputation', href: '/dashboard/company/profile', icon: 'verified_user' },
   { label: 'Audit Log', href: '/dashboard/company/audit', icon: 'history' },
 ];
 
@@ -54,16 +57,48 @@ const auditLogs = [
 ];
 
 export default function CompanyDashboard() {
+  const { publicKey, connected } = useWallet();
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    async function loadUser() {
+      if (!publicKey) return;
+      const walletAddress = publicKey.toString();
+      
+      try {
+        const res = await fetch(`/api/users?wallet_address=${walletAddress}`);
+        if (res.ok) {
+          const userData = await res.json();
+          setUser(userData);
+        } else {
+          const mockStr = localStorage.getItem('mockUser');
+          if (mockStr) setUser(JSON.parse(mockStr));
+        }
+      } catch (err) {
+        const mockStr = localStorage.getItem('mockUser');
+        if (mockStr) setUser(JSON.parse(mockStr));
+      }
+    }
+    if (connected) {
+      loadUser();
+    }
+  }, [connected, publicKey]);
+
+  const displayName = user?.display_name || 'Nexus Labs';
+  const initials = displayName.substring(0, 2).toUpperCase();
+  const walletAddr = user?.wallet_address ? `${user.wallet_address.substring(0,6)}...${user.wallet_address.slice(-4)}` : '0x82...f92';
+  const reputation = user?.reputation_score || 98;
+
   return (
     <div className="min-h-screen bg-surface text-on-surface flex flex-col">
-      <Header role="company" reputation={98} walletAddress="0x82...f92" />
+      <Header role="company" reputation={reputation} walletAddress={walletAddr} />
 
       <div className="flex max-w-container mx-auto flex-grow">
         <SidebarNav
           items={navItems}
-          userName="Nexus Labs"
+          userName={displayName}
           userRole="Company"
-          userInitials="NL"
+          userInitials={initials}
         />
 
         <main className="flex-grow p-margin-desktop min-h-screen">

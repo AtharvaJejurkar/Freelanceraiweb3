@@ -8,11 +8,11 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 const announcements = [
-  { icon: 'record_voice_over', text: '"New compliance standards for AI data labeling contracts are now in effect."' },
-  { icon: 'trending_up', text: 'Protocol fee reduced by 0.1% for high-reputation nodes.' },
+  { icon: 'shield_lock', text: 'New Smart Contract templates for Web3 Audits have been deployed.' },
+  { icon: 'trending_up', text: 'Staking requirements for dispute resolution reduced by 10%.' },
 ];
 
-export default function FreelancerProfilePage() {
+export default function CompanyProfilePage() {
   const { publicKey, connected } = useWallet();
   const router = useRouter();
   
@@ -51,7 +51,7 @@ export default function FreelancerProfilePage() {
 
         if (userData && userData.id !== 'mock-user-id') {
           try {
-            const res = await fetch(`/api/projects?freelancer_id=${userData.id}`);
+            const res = await fetch(`/api/projects?company_id=${userData.id}`);
             if (res.ok) {
               const projectsData = await res.json();
               setActiveContracts(projectsData);
@@ -61,7 +61,7 @@ export default function FreelancerProfilePage() {
           }
 
           try {
-            const res = await fetch(`/api/transactions?to_wallet=${walletAddress}`);
+            const res = await fetch(`/api/transactions?from_wallet=${walletAddress}`);
             if (res.ok) {
               const txData = await res.json();
               setTransactions(txData);
@@ -97,11 +97,11 @@ export default function FreelancerProfilePage() {
       {/* Global Stats Grid */}
       <section className="grid grid-cols-1 md:grid-cols-3 gap-gutter">
         <div className="bg-surface-container-high ledger-border p-6 hard-shadow">
-          <p className="font-mono text-xs text-on-surface-variant mb-2">Earnings in Escrow</p>
+          <p className="font-mono text-xs text-on-surface-variant mb-2">Total Funded (Escrow)</p>
           <h3 className="text-3xl font-headline font-semibold text-brass-500">${user.total_escrowed || '0.00'}</h3>
           <div className="mt-4 flex items-center gap-2 text-on-surface-variant">
             <span className="material-symbols-outlined text-sm">lock</span>
-            <span className="font-mono text-xs uppercase">Pending Smart-Contract Release</span>
+            <span className="font-mono text-xs uppercase">Locked in Smart Contracts</span>
           </div>
         </div>
 
@@ -131,7 +131,7 @@ export default function FreelancerProfilePage() {
         {/* Active Contracts */}
         <div className="lg:col-span-8 space-y-8">
           <div className="flex items-center justify-between">
-            <h4 className="text-xl font-headline font-semibold text-on-surface">Active Contracts</h4>
+            <h4 className="text-xl font-headline font-semibold text-on-surface">Active Contracts Initiated</h4>
             <span className="font-mono text-xs text-on-surface-variant uppercase bg-surface-container px-3 py-1 border border-outline-variant">
               Total: {activeContracts.length < 10 ? `0${activeContracts.length}` : activeContracts.length}
             </span>
@@ -167,8 +167,8 @@ export default function FreelancerProfilePage() {
                     </p>
                   </div>
                   <div>
-                    <p className="font-mono text-[10px] text-on-surface-variant mb-1">Counterparty</p>
-                    <p className="font-mono text-xs uppercase">{contract.users?.display_name || 'Anonymous'}</p>
+                    <p className="font-mono text-[10px] text-on-surface-variant mb-1">Counterparty (Freelancer)</p>
+                    <p className="font-mono text-xs uppercase">{contract.users?.display_name || 'Unassigned'}</p>
                   </div>
                 </div>
 
@@ -188,10 +188,10 @@ export default function FreelancerProfilePage() {
                   No Active Pipeline
                 </h5>
                 <p className="text-sm text-on-surface-variant mb-6">
-                  The contract ledger is currently synchronized but contains no pending active agreements for your identifier.
+                  You have not initiated any contracts or all your contracts have been finalized.
                 </p>
-                <button onClick={() => router.push('/dashboard/freelancer')} className="border border-outline-variant text-on-surface-variant px-8 py-2 font-mono text-xs font-bold uppercase tracking-widest hover:border-brass-500 hover:text-brass-500 transition-all">
-                  Search Available Requests
+                <button onClick={() => router.push('/dashboard/company/projects/new')} className="border border-outline-variant text-on-surface-variant px-8 py-2 font-mono text-xs font-bold uppercase tracking-widest hover:border-brass-500 hover:text-brass-500 transition-all">
+                  Initialize Contract
                 </button>
               </div>
             </div>
@@ -200,22 +200,22 @@ export default function FreelancerProfilePage() {
 
         {/* Right Column: Profile & Reputation */}
         <div className="lg:col-span-4 space-y-8">
-          <h4 className="text-xl font-headline font-semibold text-on-surface">Freelancer Identity</h4>
+          <h4 className="text-xl font-headline font-semibold text-on-surface">Company Identity</h4>
 
           {/* Identity Information */}
           <div className="bg-surface-container-high ledger-border p-8 space-y-6 relative">
             <div>
-              <h5 className="text-2xl font-headline font-bold text-brass-500 mb-2">{user.display_name || 'Anonymous Node'}</h5>
+              <h5 className="text-2xl font-headline font-bold text-brass-500 mb-2">{user.display_name || 'Anonymous Organization'}</h5>
               <div className="flex flex-wrap gap-2 mb-4">
                 <span className="font-mono text-[10px] bg-brass-500/10 text-brass-500 px-2 py-1 uppercase tracking-widest border border-brass-500/20">
-                  {user.domain || 'Expertise Not Set'}
+                  {user.domain || 'Industry Not Set'}
                 </span>
                 <span className="font-mono text-[10px] bg-surface-container text-on-surface-variant px-2 py-1 uppercase tracking-widest border border-outline-variant">
-                  {user.experience || 'Experience Not Set'}
+                  {user.experience || 'Size Not Set'}
                 </span>
               </div>
               <p className="text-sm text-on-surface-variant font-sans leading-relaxed">
-                {user.bio || 'No professional overview provided yet. Update your registry to stand out in the marketplace.'}
+                {user.bio || 'No overview provided yet. Update your organization registry to ensure maximum transparency on the ledger.'}
               </p>
             </div>
           </div>
@@ -227,19 +227,19 @@ export default function FreelancerProfilePage() {
             }} />
 
             <div className="relative z-10">
-              <p className="font-mono text-[10px] text-on-surface-variant mb-4 uppercase">Node Performance Data</p>
+              <p className="font-mono text-[10px] text-on-surface-variant mb-4 uppercase">Company Performance</p>
 
               <div className="space-y-6">
-                {/* Delivery Time */}
+                {/* Projects Created */}
                 <div>
                   <div className="flex justify-between items-end mb-2">
-                    <span className="font-mono text-xs text-on-surface">Projects Completed</span>
+                    <span className="font-mono text-xs text-on-surface">Projects Managed</span>
                     <span className="font-mono text-brass-500">{user.projects_completed}</span>
                   </div>
                   <div className="h-1 bg-ink-900 w-full">
                     <div className="h-full bg-brass-500 w-[100%]" />
                   </div>
-                  <p className="text-[10px] text-on-surface-variant mt-1">Verified on-chain contracts.</p>
+                  <p className="text-[10px] text-on-surface-variant mt-1">Total contracts deployed.</p>
                 </div>
 
                 {/* Dispute Rate */}
@@ -287,7 +287,7 @@ export default function FreelancerProfilePage() {
       {/* Transaction Archive */}
       <section className="space-y-6">
         <div className="flex items-center gap-4">
-          <h4 className="text-xl font-headline font-semibold text-on-surface">Transaction Archive</h4>
+          <h4 className="text-xl font-headline font-semibold text-on-surface">Payment Archive</h4>
           <div className="h-px flex-1 bg-outline-variant/30" />
         </div>
 
@@ -313,8 +313,8 @@ export default function FreelancerProfilePage() {
                   >
                     <td className="p-4 text-on-surface">{new Date(tx.created_at).toLocaleDateString()}</td>
                     <td className="p-4 text-brass-500">${tx.amount.toLocaleString()}</td>
-                    <td className="p-4"><span className="text-brass-500">{tx.type}</span></td>
-                    <td className="p-4 text-on-surface-variant">{tx.tx_hash.substring(0, 10)}...</td>
+                    <td className="p-4"><span className="text-brass-500">{tx.type || 'PAID'}</span></td>
+                    <td className="p-4 text-on-surface-variant">{tx.tx_signature?.substring(0, 10)}...</td>
                   </tr>
                 ))
               ) : (

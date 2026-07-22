@@ -126,7 +126,12 @@ export default function OnboardPage() {
           const redirectRole = existingUser?.role || mockUser?.role || selectedRole;
           
           if (redirectRole === 'company') {
-            router.push('/dashboard/company');
+            const isOnboarded = existingUser?.is_onboarded || mockUser?.is_onboarded;
+            if (!isOnboarded) {
+              router.push('/onboard/company');
+            } else {
+              router.push('/dashboard/company');
+            }
           } else {
             const isOnboarded = existingUser?.is_onboarded || mockUser?.is_onboarded;
             if (!isOnboarded) {
